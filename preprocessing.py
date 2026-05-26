@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from scipy.signal import (
     butter,
@@ -7,6 +8,10 @@ from scipy.signal import (
 
 from parser import decode_file
 from analysis import sestavi_podatke
+
+import os 
+file_path = os.path.join("data" , "sleepy", "1.bin")
+
 
 def odstrani_dc(signal):
 
@@ -144,3 +149,103 @@ def preprocess_signal(
     signal = normaliziraj(signal)
 
     return signal
+
+if __name__ == "__main__":
+
+    paketi, raw_packets = decode_file(
+        file_path
+    )
+
+    sensors = [
+        1,
+        2
+    ]
+
+    osi = [
+        "X",
+        "Y",
+        "Z"
+    ]
+
+    for sensor_id in sensors:
+
+        packets = [
+            p for p in paketi
+            if p.id == sensor_id
+        ]
+
+        fvz, signal_data = sestavi_podatke(
+            packets
+        )
+
+        if sensor_id == 1:
+
+            name = "Gyroscope"
+
+            unit = "deg/s"
+
+        else:
+
+            name = "Accelerometer"
+
+            unit = "m/sÂ²"
+
+        processed_signal = preprocess_signal(
+            signal_data,
+            fvz
+        )
+        
+
+        samples = len(
+            signal_data
+        )
+
+        time = np.arange(
+            samples
+        ) / fvz
+
+        fig, axs = plt.subplots(
+            3,
+            1,
+            figsize=(14, 10)
+        )
+
+        for i in range(3):
+
+            axs[i].plot(time,signal_data[:samples, i],label="Original")
+
+            axs[i].plot(
+                time,
+                processed_signal[:samples, i],
+                label="Processed"
+            )
+
+            axs[i].set_title(
+                f"{osi[i]} axis"
+            )
+
+            axs[i].set_xlabel(
+                "Time (s)"
+            )
+
+            axs[i].set_ylabel(
+                unit
+            )
+
+            axs[i].grid()
+
+            axs[i].legend()
+
+        plt.suptitle(
+            f"Preprocessing - {name} "
+            f"(Fvz={fvz:.2f} Hz)"
+        )
+
+        plt.tight_layout()
+
+        plt.savefig(
+            f"{name}_preprocessing.png",
+            dpi=300
+        )
+
+    plt.show()
