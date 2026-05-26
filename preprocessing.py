@@ -7,7 +7,6 @@ from scipy.signal import (
 
 from parser import decode_file
 from analysis import sestavi_podatke
-file_path = r"C:\Users\filip\Desktop\nova_data\data\sleepy\1.BIN"
 
 def odstrani_dc(signal):
 
@@ -56,3 +55,92 @@ def butter_bandpass(
         [low, high],
         btype='band'
     )
+
+def bandpass_filter(
+    signal,
+    lowcut,
+    highcut,
+    fs,
+    order=4
+):
+
+    nyq = 0.5 * fs
+
+    if highcut >= nyq:
+
+        highcut = nyq - 0.1
+
+    b, a = butter_bandpass(
+        lowcut,
+        highcut,
+        fs,
+        order
+    )
+
+    filtered = np.zeros_like(
+        signal
+    )
+
+    for i in range(signal.shape[1]):
+
+        channel = signal[:, i]
+
+        if len(channel) < 30:
+
+            filtered[:, i] = channel
+
+            continue
+
+        if np.std(channel) < 1e-8:
+
+            filtered[:, i] = channel
+
+            continue
+
+        try:
+
+            filtered[:, i] = filtfilt(
+                b,
+                a,
+                channel
+            )
+
+        except Exception:
+
+            filtered[:, i] = channel
+
+    return filtered
+
+
+def preprocess_signal(
+    signal,
+    fs
+):
+
+    signal = odstrani_dc(
+        signal
+    )
+
+    if fs >= 50:
+
+        signal = bandpass_filter(
+            signal,
+            lowcut=0.5,
+            highcut=35,
+            fs=fs,
+            order=4
+        )
+
+    else:
+
+        signal = bandpass_filter(
+            signal,
+            lowcut=0.5,
+            highcut=10,
+            fs=fs,
+            order=4
+        )
+
+    signal = normaliziraj(signal)
+
+    return signal
