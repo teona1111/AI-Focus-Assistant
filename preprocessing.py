@@ -150,6 +150,8 @@ def preprocess_signal(
 
     return signal
 
+# Demonstracija delovanja predobdelave signalov
+
 if __name__ == "__main__":
 
     paketi, raw_packets = decode_file(
