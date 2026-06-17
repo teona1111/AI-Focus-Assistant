@@ -9,8 +9,14 @@ from scipy.signal import (
 from parser import decode_file
 from analysis import sestavi_podatke
 
-import os 
-file_path = os.path.join("data" , "sleepy", "1.bin")
+import os
+
+
+file_path = os.path.join(
+    "data",
+    "sleepy",
+    "1.bin"
+)
 
 
 def odstrani_dc(signal):
@@ -19,6 +25,7 @@ def odstrani_dc(signal):
         signal,
         axis=0
     )
+
 
 def normaliziraj(signal):
 
@@ -40,7 +47,9 @@ def normaliziraj(signal):
     )
 
     iqr = q75 - q25
+
     iqr[iqr == 0] = 1
+
     return (signal - median) / iqr
 
 
@@ -52,14 +61,19 @@ def butter_bandpass(
 ):
 
     nyq = 0.5 * fs
+
     low = lowcut / nyq
     high = highcut / nyq
 
     return butter(
         order,
-        [low, high],
-        btype='band'
+        [
+            low,
+            high
+        ],
+        btype="band"
     )
+
 
 def bandpass_filter(
     signal,
@@ -69,11 +83,19 @@ def bandpass_filter(
     order=4
 ):
 
+    if fs <= 0:
+        return signal
+
     nyq = 0.5 * fs
 
     if highcut >= nyq:
-
         highcut = nyq - 0.1
+
+    if lowcut <= 0:
+        lowcut = 0.1
+
+    if highcut <= lowcut:
+        return signal
 
     b, a = butter_bandpass(
         lowcut,
@@ -83,7 +105,8 @@ def bandpass_filter(
     )
 
     filtered = np.zeros_like(
-        signal
+        signal,
+        dtype=float
     )
 
     for i in range(signal.shape[1]):
@@ -91,15 +114,11 @@ def bandpass_filter(
         channel = signal[:, i]
 
         if len(channel) < 30:
-
             filtered[:, i] = channel
-
             continue
 
         if np.std(channel) < 1e-8:
-
             filtered[:, i] = channel
-
             continue
 
         try:
@@ -121,6 +140,8 @@ def preprocess_signal(
     signal,
     fs
 ):
+
+    signal = signal.astype(float)
 
     signal = odstrani_dc(
         signal
@@ -146,11 +167,12 @@ def preprocess_signal(
             order=4
         )
 
-    signal = normaliziraj(signal)
+    signal = normaliziraj(
+        signal
+    )
 
     return signal
 
-# Demonstracija delovanja predobdelave signalov
 
 if __name__ == "__main__":
 
@@ -163,7 +185,7 @@ if __name__ == "__main__":
         2
     ]
 
-    osi = [
+    axes = [
         "X",
         "Y",
         "Z"
@@ -180,23 +202,23 @@ if __name__ == "__main__":
             packets
         )
 
+        if signal_data.size == 0:
+            continue
+
         if sensor_id == 1:
 
             name = "Gyroscope"
-
             unit = "deg/s"
 
         else:
 
             name = "Accelerometer"
-
-            unit = "m/sÂ²"
+            unit = "g"
 
         processed_signal = preprocess_signal(
             signal_data,
             fvz
         )
-        
 
         samples = len(
             signal_data
@@ -214,7 +236,11 @@ if __name__ == "__main__":
 
         for i in range(3):
 
-            axs[i].plot(time,signal_data[:samples, i],label="Original")
+            axs[i].plot(
+                time,
+                signal_data[:samples, i],
+                label="Original"
+            )
 
             axs[i].plot(
                 time,
@@ -223,7 +249,7 @@ if __name__ == "__main__":
             )
 
             axs[i].set_title(
-                f"{osi[i]} axis"
+                f"{axes[i]} axis"
             )
 
             axs[i].set_xlabel(
@@ -235,7 +261,6 @@ if __name__ == "__main__":
             )
 
             axs[i].grid()
-
             axs[i].legend()
 
         plt.suptitle(
