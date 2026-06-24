@@ -1,3 +1,6 @@
+from notifications import show_notification
+state_history = []
+last_notification = ""
 from flask import (
     Flask,
     jsonify,
@@ -30,6 +33,7 @@ latest_eye = {
     "open": 1.0,
     "closed": 0.0
 }
+last_notification = ""
 
 
 def camera_loop():
@@ -121,6 +125,8 @@ def index():
 @app.route("/status")
 def status():
 
+    global last_notification
+
     try:
 
         fusion_result = fuse_predictions(
@@ -128,18 +134,55 @@ def status():
             latest_eye
         )
 
-        return jsonify({
+        state = fusion_result["state"]
+        state_history.append(state)
+        if len(state_history) > 3:
+            state_history.pop(0)
 
-            "sensor":
-            latest_sensor,
+        if len(state_history) == 3:
+            same = (state_history[0] == state_history[1] == state_history[2])
 
-            "eye":
-            latest_eye,
+            if same:
+                if (
+                    state == "sleepy"
+                    and
+                    last_notification != "sleepy"
+                ):
+                    show_notification(
+                        "AI Focus Assistant",
+                        "You seem tired. Take a short break."
+                    )
+                    last_notification = "sleepy"
 
-            "final":
-            fusion_result
+                elif (
+                    state == "distracted"
+                    and
+                    last_notification != "distracted"
+                ):
 
-        })
+                    show_notification(
+                        "AI Focus Assistant",
+                        "Stay focused on your work."
+                    )
+
+                    last_notification = "distracted"
+
+                elif state == "focus":
+
+                    last_notification = ""
+
+            return jsonify({
+
+                "sensor":
+                latest_sensor,
+
+                "eye":
+                latest_eye,
+
+                "final":
+                fusion_result
+
+            })
 
     except Exception as e:
 

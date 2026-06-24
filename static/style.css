@@ -58,7 +58,7 @@ color:#7da7d9;
 
 #camera{
  width:100%;
- height: 500px;
+ height: 300px;
  object-fit:cover;
  border-radius:12px;
  overflow:hidden;
@@ -196,4 +196,128 @@ letter-spacing:2px;
 
     background:#ffbf00;
     color:black;
+}
+
+#themeToggle{
+
+    background:transparent;
+
+    color:white;
+
+    border:1px solid #1f4b7a;
+
+    border-radius:10px;
+
+    padding:8px 14px;
+
+    cursor:pointer;
+
+    font-family:Consolas;
+}
+
+#themeToggle:hover{
+
+    background:#10263f;
+}
+
+.light-mode{
+
+    background:#f5f7fb;
+    color:#111;
+}
+
+.light-mode .main-card,
+.light-mode .camera-card,
+.light-mode .score-card,
+.light-mode .info-card{
+
+    background:white;
+
+    border:1px solid #d0d7e2;
+}
+
+.light-mode .card-title{
+
+    color:#2563eb;
+}
+
+.light-mode .header{
+
+    color:#2563eb;
+}
+
+.light-mode .logo{
+
+    color:#2563eb;
+}
+
+.light-mode #cameraToggle,
+.light-mode #themeToggle{
+
+    color:#111;
+
+    border:1px solid #cbd5e1;
+}
+
+.light-mode #cameraToggle:hover,
+.light-mode #themeToggle:hover{
+
+    background:#e5e7eb;
+}
+
+.light-mode .bar{
+
+    background:#dbe4f0;
+}
+
+.light-mode #confidence{
+
+    color:#555;
+}
+
+.logo{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+}
+
+.logo-img{
+
+    width:55px;
+
+    height:55px;
+
+    object-fit:contain;
+}
+
+.logo-text{
+
+    display:flex;
+
+    flex-direction:column;
+
+    line-height:1;
+}
+
+.logo-title{
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    color:#49a2ff;
+}
+
+.logo-subtitle{
+
+    font-size:12px;
+
+    letter-spacing:4px;
+
+    color:#7da7d9;
+
+    margin-top:4px;
 }

@@ -22,12 +22,32 @@ href="{{ url_for('static', filename='style.css') }}">
         </div>
 
         <div class="logo">
-            ● AI FOCUS ASSISTANT
+
+    <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        class="logo-img">
+
+    <div class="logo-text">
+
+        <div class="logo-title">
+            AI FOCUS
         </div>
 
-        <div id="clock">
-            --:--:--
+        <div class="logo-subtitle">
+            ASSISTANT
         </div>
+
+    </div>
+
+</div>
+
+        <div style="display:flex; gap:15px; align-items:center;">
+            <button id="themeToggle" onclick="toggleTheme()">☀️</button>
+            <div id="clock">
+                --:--:--
+        </div>
+
+</div>
 
     </div>
 
@@ -594,6 +614,65 @@ setInterval(
     updateStatus,
     5000
 );
+function toggleTheme(){
+
+    document.body.classList.toggle(
+        "light-mode"
+    );
+
+    const button =
+    document.getElementById(
+        "themeToggle"
+    );
+
+    if(
+        document.body.classList.contains(
+            "light-mode"
+        )
+    ){
+
+        button.innerText =
+        "🌙";
+
+        localStorage.setItem(
+            "theme",
+            "light"
+        );
+    }
+
+    else{
+
+        button.innerText =
+        "☀️";
+
+        localStorage.setItem(
+            "theme",
+            "dark"
+        );
+    }
+}
+
+window.onload = function(){
+
+    const savedTheme =
+    localStorage.getItem(
+        "theme"
+    );
+
+    if(savedTheme === "light"){
+
+        document.body.classList.add(
+            "light-mode"
+        );
+
+        document.getElementById(
+            "themeToggle"
+        ).innerText =
+        "🌙";
+    }
+};
+
+</script>
 
 </script>
 
