@@ -1,0 +1,43 @@
+name: Release Package and Deploy
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy matplotlib pytest
+
+      - name: Run unit tests
+        run: |
+          python -m pytest
+
+      - name: Create deployment package
+        run: |
+          mkdir deployment_package
+          cp *.py deployment_package/
+          cp README.md deployment_package/ || true
+          cp pytest.ini deployment_package/
+          cp -r tests deployment_package/
+          zip -r AI-Focus-Assistant-release.zip deployment_package
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI-Focus-Assistant-release
+          path: AI-Focus-Assistant-release.zip
