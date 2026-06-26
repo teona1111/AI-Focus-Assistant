@@ -30,10 +30,20 @@ jobs:
       - name: Create deployment package
         run: |
           mkdir deployment_package
-          cp *.py deployment_package/
-          cp README.md deployment_package/ || true
+          cp app.py deployment_package/
+          cp sensor_predictor.py deployment_package/
+          cp fusion.py deployment_package/
+          cp eye_predictor.py deployment_package/
+          cp parser.py deployment_package/
+          cp analysis.py deployment_package/
+          cp preprocessing.py deployment_package/
+          cp spectrogram.py deployment_package/
+          cp index.html deployment_package/
+          cp style.css deployment_package/
+          cp eye_model.h5 deployment_package/
+          cp rf_combined.pkl deployment_package/
           cp pytest.ini deployment_package/
-          cp -r tests deployment_package/
+          cp README.md deployment_package/ || true
           zip -r AI-Focus-Assistant-release.zip deployment_package
 
       - name: Upload deployment artifact
