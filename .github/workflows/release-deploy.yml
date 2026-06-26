@@ -38,8 +38,8 @@ jobs:
           cp analysis.py deployment_package/
           cp preprocessing.py deployment_package/
           cp spectrogram.py deployment_package/
-          cp index.html deployment_package/
-          cp style.css deployment_package/
+          cp -r templates deployment_package/
+          cp -r static deployment_package/
           cp eye_model.h5 deployment_package/
           cp rf_combined.pkl deployment_package/
           cp pytest.ini deployment_package/
