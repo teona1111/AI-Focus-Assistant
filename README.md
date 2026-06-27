@@ -42,7 +42,7 @@ Before running the project, ensure you have:
 - Python 3.11
 - A webcam
 - STM32 board
-- All required Python packages listed in `requirements.txt`
+- All required Python packages listed in [`requirements.txt`](requirements.txt)
 
 ---
 
