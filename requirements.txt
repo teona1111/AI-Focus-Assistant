@@ -1,0 +1,11 @@
+Flask
+tensorflow
+scikit-learn
+opencv-python
+mediapipe
+numpy
+scipy
+matplotlib
+Pillow
+joblib
+pyserial
