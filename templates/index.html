@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>AI Focus Assistant</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div id="notification">
+        </div>
+
+        <div class="logo">
+
+    <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        class="logo-img">
+
+    <div class="logo-text">
+
+        <div class="logo-title">
+            AI FOCUS
+        </div>
+
+        <div class="logo-subtitle">
+            ASSISTANT
+        </div>
+
+    </div>
+
+</div>
+
+        <div style="display:flex; gap:15px; align-items:center;">
+            <button id="themeToggle" onclick="toggleTheme()">☀️</button>
+            <div id="clock">
+                --:--:--
+        </div>
+
+</div>
+
+    </div>
+
+    <div class="top-grid">
+
+        <div class="main-card">
+
+            <div class="card-title">
+                CURRENT STATE
+            </div>
+
+            <div id="stateIcon">
+                🧠
+            </div>
+
+            <div id="finalState">
+                LOADING
+            </div>
+
+            <div id="confidence">
+                confidence 0%
+            </div>
+
+        </div>
+
+        <div class="camera-card">
+
+    <div class="camera-header">
+
+        <div class="card-title">
+            ● LIVE FEED
+        </div>
+
+        <button
+            id="cameraToggle"
+            onclick="toggleCamera()">
+
+            HIDE
+        </button>
+
+    </div>
+
+    <img
+        id="camera"
+        src="/video_feed">
+
+</div>
+
+    </div>
+
+    <div class="scores">
+
+        <div class="score-card">
+
+            <div class="score-title">
+                FOCUS
+            </div>
+
+            <div
+                class="score-value green"
+                id="focusScore">
+            </div>
+
+            <div class="bar">
+                <div
+                    id="focusBar"
+                    class="bar-fill green-bg">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="score-card">
+
+            <div class="score-title">
+                SLEEPY
+            </div>
+
+            <div
+                class="score-value yellow"
+                id="sleepyScore">
+            </div>
+
+            <div class="bar">
+                <div
+                    id="sleepyBar"
+                    class="bar-fill yellow-bg">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="score-card">
+
+            <div class="score-title">
+                DISTRACTED
+            </div>
+
+            <div
+                class="score-value red"
+                id="distractedScore">
+            </div>
+
+            <div class="bar">
+                <div
+                    id="distractedBar"
+                    class="bar-fill red-bg">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="bottom-grid">
+
+        <div class="info-card">
+
+            <div class="card-title">
+                STATISTICS
+            </div>
+
+            <p>
+                🧠 Focus
+                <span
+                id="focusPercent"
+                style="color:#00ff88">
+                0%
+            </span>
+        </p>
+
+        <p>
+            😴 Sleepy
+            <span
+                id="sleepyPercent"
+                style="color:#ffbf00">
+                0%
+            </span>
+        </p>
+
+        <p>
+            🤯 Distracted
+            <span
+                id="distractedPercent"
+                style="color:#ff4d5a">
+                0%
+            </span>
+        </p>
+
+        <hr>
+
+        <p>
+            ⭐ Focus Score
+            <span
+                id="focusScoreStat"
+                style="color:#00ff88">
+                0
+            </span>
+        </p>
+
+    </div>
+
+        <div class="info-card">
+
+            <div class="card-title">
+                NOTIFICATIONS
+            </div>
+
+            <label>
+
+                <input
+                     type="checkbox"
+                    id="audioToggle">
+
+                Audio alert when sleepy
+
+            </label>
+
+        </div>
+
+        <div class="info-card">
+
+            <div class="card-title">
+                CAMERA
+            </div>
+
+            <p>
+                OPEN
+                <span id="eyeOpen"></span>
+            </p>
+
+            <p>
+                CLOSED
+                <span id="eyeClosed"></span>
+            </p>
+
+        </div>
+
+        <div class="info-card">
+
+            <div class="card-title">
+                SENSOR MODEL
+            </div>
+
+            <p>
+                FOCUS
+                <span id="rfFocus"></span>
+            </p>
+
+            <p>
+                SLEEPY
+                <span id="rfSleepy"></span>
+            </p>
+
+            <p>
+                DISTRACTED
+                <span id="rfDistracted"></span>
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let stateHistory = [];
+let lastNotification = "";
+let sleepyAlarm = null;
+
+let focusCount = 0;
+let sleepyCount = 0;
+let distractedCount = 0;
+
+function updateClock(){
+
+    const now = new Date();
+
+    document
+    .getElementById("clock")
+    .innerText =
+    now.toLocaleTimeString();
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+function showNotification(
+    text,
+    cssClass
+){
+
+    const box =
+    document.getElementById(
+        "notification"
+    );
+
+    box.innerText =
+    text;
+
+    box.className =
+    cssClass;
+
+    box.style.display =
+    "block";
+
+    setTimeout(()=>{
+
+        box.style.display =
+        "none";
+
+    },4000);
+}
+
+function playAlert(){
+
+    if(
+        sleepyAlarm &&
+        !sleepyAlarm.paused
+    ){
+        return;
+    }
+
+    sleepyAlarm = new Audio(
+        "/static/iphone_alarm.mp3"
+    );
+
+    sleepyAlarm.loop = true;
+
+    sleepyAlarm.volume = 1.0;
+
+    sleepyAlarm.play();
+}
+function stopAlert(){
+
+    if(
+        sleepyAlarm
+    ){
+
+        sleepyAlarm.pause();
+
+        sleepyAlarm.currentTime = 0;
+    }
+}
+
+let cameraVisible = true;
+
+function toggleCamera(){
+
+    const camera =
+    document.getElementById(
+        "camera"
+    );
+
+    const button =
+    document.getElementById(
+        "cameraToggle"
+    );
+
+    if(cameraVisible){
+
+        camera.style.display =
+        "none";
+
+        button.innerText =
+        "SHOW";
+
+        cameraVisible =
+        false;
+    }
+
+    else{
+
+        camera.style.display =
+        "block";
+
+        button.innerText =
+        "HIDE";
+
+        cameraVisible =
+        true;
+    }
+}
+async function updateStatus(){
+
+    try{
+
+        const response =
+        await fetch("/status");
+
+        const data =
+        await response.json();
+
+        if(data.error){
+
+            console.log(data.error);
+            return;
+        }
+
+        const focus =
+        data.final.focus_score;
+
+        const sleepy =
+        data.final.sleepy_score;
+
+        const distracted =
+        data.final.distracted_score;
+
+        document.getElementById("focusScore").innerText =
+        (focus*100).toFixed(1)+"%";
+
+        document.getElementById("sleepyScore").innerText =
+        (sleepy*100).toFixed(1)+"%";
+
+        document.getElementById("distractedScore").innerText =
+        (distracted*100).toFixed(1)+"%";
+
+        document.getElementById("focusBar").style.width =
+        (focus*100)+"%";
+
+        document.getElementById("sleepyBar").style.width =
+        (sleepy*100)+"%";
+
+        document.getElementById("distractedBar").style.width =
+        (distracted*100)+"%";
+
+        document.getElementById("eyeOpen").innerText =
+        (data.eye.open*100).toFixed(1)+"%";
+
+        document.getElementById("eyeClosed").innerText =
+        (data.eye.closed*100).toFixed(1)+"%";
+
+        document.getElementById("rfFocus").innerText =
+        (data.sensor.focus*100).toFixed(1)+"%";
+
+        document.getElementById("rfSleepy").innerText =
+        (data.sensor.sleepy*100).toFixed(1)+"%";
+
+        document.getElementById("rfDistracted").innerText =
+        (data.sensor.distracted*100).toFixed(1)+"%";
+
+        const state = data.final.state.toUpperCase();
+        if(state === "FOCUS"){
+            focusCount++;
+        }
+
+        if(state === "SLEEPY"){
+            sleepyCount++;
+        }
+
+        if(state === "DISTRACTED"){
+            distractedCount++;
+        }
+
+        if(state !== "SLEEPY"){
+            stopAlert();
+        }
+        stateHistory.push(
+            state
+        );2
+
+        if(
+            stateHistory.length > 3
+        ){
+            stateHistory.shift();
+        }
+
+        document.getElementById(
+            "finalState"
+        ).innerText = state;
+
+        const icon =
+        document.getElementById(
+            "stateIcon"
+        );
+
+        const stateText =
+        document.getElementById(
+            "finalState"
+        );
+
+        if(state === "FOCUS"){
+
+            icon.innerText = "🧠";
+
+            stateText.style.color =
+            "#00ff88";
+        }
+
+        else if(state === "SLEEPY"){
+
+            icon.innerText = "😴";
+
+            stateText.style.color =
+            "#ffbf00";
+        }
+
+        else if(state === "DISTRACTED"){
+
+            icon.innerText = "🤯";
+
+            stateText.style.color =
+            "#ff4d5a";
+        }
+
+        const conf = Math.max(
+            focus,
+            sleepy,
+            distracted
+        );
+
+        document.getElementById("confidence").innerText =
+        "confidence " +
+        (conf*100).toFixed(1) +
+        "%";
+
+        const total =
+        focusCount +
+        sleepyCount +
+        distractedCount;
+
+        if(total > 0){
+
+            const focusPercent =
+            (focusCount / total) * 100;
+
+            const sleepyPercent =
+            (sleepyCount / total) * 100;
+
+            const distractedPercent =
+            (distractedCount / total) * 100;
+
+            document.getElementById(
+                "focusPercent"
+            ).innerText =
+            focusPercent.toFixed(1) + "%";
+
+            document.getElementById(
+                "sleepyPercent"
+            ).innerText =
+            sleepyPercent.toFixed(1) + "%";
+
+            document.getElementById(
+                "distractedPercent"
+            ).innerText =
+            distractedPercent.toFixed(1) + "%";
+
+            document.getElementById(
+                "focusScoreStat"
+            ).innerText =
+            Math.round(
+                focusPercent
+            ) + "/100";
+        }
+
+        if(
+            stateHistory.length === 3
+        ){
+            const same =
+            stateHistory[0] === stateHistory[1] 
+            &&
+            stateHistory[1] === stateHistory[2];
+
+            if(
+                same && state !== lastNotification
+            ){
+                lastNotification = state;
+
+                if(state === "DISTRACTED"){
+                    stopAlert();
+                    showNotification("⚠️ Stay focused.", "notification-red");
+                }
+                
+                if(state === "SLEEPY"){
+                    showNotification("😴 You seem tired. Take a short break.", "notification-yellow");
+                    const enabled = document.getElementById("audioToggle").checked;
+
+                    if(enabled){ playAlert(); }
+                }
+                if(state === "FOCUS"){
+                    stopAlert();
+                    lastNotification = "";
+                    document.getElementById("notification").style.display = "none";
+}
+            }
+        }
+
+    }
+
+    catch(error){
+
+        console.error(
+            "JS ERROR:",
+            error
+        );
+
+    }
+}
+
+updateStatus();
+
+setInterval(
+    updateStatus,
+    5000
+);
+function toggleTheme(){
+
+    document.body.classList.toggle(
+        "light-mode"
+    );
+
+    const button =
+    document.getElementById(
+        "themeToggle"
+    );
+
+    if(
+        document.body.classList.contains(
+            "light-mode"
+        )
+    ){
+
+        button.innerText =
+        "🌙";
+
+        localStorage.setItem(
+            "theme",
+            "light"
+        );
+    }
+
+    else{
+
+        button.innerText =
+        "☀️";
+
+        localStorage.setItem(
+            "theme",
+            "dark"
+        );
+    }
+}
+
+window.onload = function(){
+
+    const savedTheme =
+    localStorage.getItem(
+        "theme"
+    );
+
+    if(savedTheme === "light"){
+
+        document.body.classList.add(
+            "light-mode"
+        );
+
+        document.getElementById(
+            "themeToggle"
+        ).innerText =
+        "🌙";
+    }
+};
+
+</script>
+
+</script>
+
+</body>
+</html>
